@@ -4,7 +4,7 @@ module.exports.findAllCards = (req, res) => {
   Card.find({})
     .then((cards) => res.send(cards))
     .catch((err) =>
-      res.status(500).send({ message: `Произошла ошибка: ${err}` })
+      res.status(500).send({ message: 'На сервере произошла ошибка' })
     );
 };
 
@@ -23,7 +23,7 @@ module.exports.findCardById = (req, res) => {
         res.status(400).send({ message: `Неверный идентификатор карточки` });
         return;
       }
-      res.status(500).send({ message: `Произошла ошибка: ${err}` });
+      res.status(500).send({ message: 'На сервере произошла ошибка' });
     });
 };
 
@@ -37,7 +37,7 @@ module.exports.createCard = (req, res) => {
           .status(400)
           .send({ message: `Переданы некорректные данные` });
       }
-      res.status(500).send({ message: `Произошла ошибка: ${err}` });
+      res.status(500).send({ message: 'На сервере произошла ошибка' });
     });
 };
 
@@ -56,7 +56,7 @@ module.exports.deleteCardById = (req, res) => {
         res.status(400).send({ message: `Неверный идентификатор карточки` });
         return;
       }
-      res.status(500).send({ message: `Произошла ошибка: ${err}` });
+      res.status(500).send({ message: 'На сервере произошла ошибка' });
     });
 };
 
@@ -77,7 +77,7 @@ module.exports.setLike = (req, res) => {
         res.status(400).send({ message: `Неверный идентификатор карточки` });
         return;
       }
-      res.status(500).send({ message: `Произошла ошибка: ${err}` });
+      res.status(500).send({ message: 'На сервере произошла ошибка' });
     });
 };
 
@@ -98,6 +98,6 @@ module.exports.deleteLike = (req, res) => {
         res.status(400).send({ message: `Неверный идентификатор карточки` });
         return;
       }
-      res.status(500).send({ message: `Произошла ошибка: ${err}` });
+      res.status(500).send({ message: 'На сервере произошла ошибка' });
     });
 };
