@@ -43,8 +43,13 @@ module.exports.createCard = (req, res) => {
 
 module.exports.deleteCardById = (req, res) => {
   Card.findByIdAndRemove(req.params.cardId)
-    .then(() => {
-      Card.find({}).then((cards) => res.send(cards));
+    .then((card) => {
+      if (card) {
+      return Card.find({}).then((cards) => res.send(cards));
+    }
+    res.status(404).send({
+      message: `Карточки с таким идентификатором не существует`,
+    });
     })
     .catch((err) => {
       if (err.name === "CastError") {
@@ -61,7 +66,12 @@ module.exports.setLike = (req, res) => {
     { $addToSet: { likes: req.user._id } },
     { new: true }
   )
-    .then((card) => res.send({ data: card }))
+    .then((card) => {
+      if (card) {
+        return res.send({ data: card });
+      }
+      res.status(404).send({ message: `Неверный идентификатор карточки` });
+    })
     .catch((err) => {
       if (err.name === "CastError") {
         res.status(400).send({ message: `Неверный идентификатор карточки` });
@@ -77,7 +87,12 @@ module.exports.deleteLike = (req, res) => {
     { $pull: { likes: req.user._id } },
     { new: true }
   )
-    .then((card) => res.send({ data: card }))
+    .then((card) => {
+      if (card) {
+        return res.send({ data: card });
+      }
+      res.status(404).send({ message: `Неверный идентификатор карточки` });
+    })
     .catch((err) => {
       if (err.name === "CastError") {
         res.status(400).send({ message: `Неверный идентификатор карточки` });

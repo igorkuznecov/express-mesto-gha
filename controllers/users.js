@@ -50,7 +50,7 @@ module.exports.updateUserInfo = (req, res) => {
   User.findByIdAndUpdate(
     req.user._id,
     { name: name, about: about },
-    { new: true }
+    { new: true, runValidators: true }
   )
     .then((user) => res.send({ data: user }))
     .catch((err) => {
