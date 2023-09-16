@@ -14,11 +14,9 @@ module.exports.findUserById = (req, res) => {
       if (user) {
         return res.send({ data: user });
       }
-      res
-        .status(404)
-        .send({
-          message: `Пользователя с таким идентификатором не существует`,
-        });
+      res.status(404).send({
+        message: `Пользователя с таким идентификатором не существует`,
+      });
     })
     .catch((err) => {
       if (err.name === "CastError") {

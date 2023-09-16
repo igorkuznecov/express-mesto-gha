@@ -14,7 +14,9 @@ module.exports.findCardById = (req, res) => {
       if (card) {
         return res.send({ data: card });
       }
-      res.status(404).send({ message: `Карточки с таким идентификатором не существует` });
+      res
+        .status(404)
+        .send({ message: `Карточки с таким идентификатором не существует` });
     })
     .catch((err) => {
       if (err.name === "CastError") {
@@ -54,7 +56,11 @@ module.exports.deleteCardById = (req, res) => {
 };
 
 module.exports.setLike = (req, res) => {
-  Card.findByIdAndUpdate(req.params.cardId, { $addToSet:{ likes: req.user._id }}, { new: true })
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $addToSet: { likes: req.user._id } },
+    { new: true }
+  )
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === "CastError") {
@@ -66,7 +72,11 @@ module.exports.setLike = (req, res) => {
 };
 
 module.exports.deleteLike = (req, res) => {
-  Card.findByIdAndUpdate(req.params.cardId, { $pull:{ likes: req.user._id }}, { new: true })
+  Card.findByIdAndUpdate(
+    req.params.cardId,
+    { $pull: { likes: req.user._id } },
+    { new: true }
+  )
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === "CastError") {
