@@ -26,4 +26,9 @@ const cardModel = new mongoose.Schema({
   },
 });
 
+cardModel.path('link').validate((link) => {
+  urlRegex = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?/;
+  return urlRegex.test(link);
+}, 'Некорректная ссылка');
+
 module.exports = mongoose.model("card", cardModel);

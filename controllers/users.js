@@ -55,7 +55,15 @@ module.exports.createUser = (req, res, next) => {
   bcrypt
     .hash(password, 10)
     .then((hash) => User.create({ name, about, avatar, email, password: hash }))
-    .then((user) => res.send({ data: user }))
+    .then((user) =>
+      res.send({
+        email: user.email,
+        name: user.name,
+        about: user.about,
+        avatar: user.avatar,
+        id: user._id,
+      })
+    )
     .catch((err) => {
       if (err.name === "ValidationError") {
         const err = new Error("Переданы некорректные данные");
@@ -118,5 +126,12 @@ module.exports.login = (req, res, next) => {
         }),
       });
     })
-    .catch(next);
+    .catch((err) => {
+      if (err.message === "Неправильные почта или пароль") {
+        const err = new Error("Неправильные почта или пароль");
+        err.statusCode = 401;
+        next(err);
+      }
+      next(err);
+    });
 };

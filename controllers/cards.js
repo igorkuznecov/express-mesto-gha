@@ -50,7 +50,7 @@ module.exports.deleteCardById = (req, res, next) => {
       }
       if (card.owner && !card.owner.equals(req.user._id)) {
         const err = new Error("Это не ваша карточка");
-        err.statusCode = 409;
+        err.statusCode = 403;
         return next(err);
       }
 

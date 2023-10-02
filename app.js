@@ -10,6 +10,7 @@ const { celebrate, Joi, errors } = require("celebrate");
 mongoose
   .connect("mongodb://localhost:27017/mestodb", {
     useNewUrlParser: true,
+    autoIndex: true,
   })
   .then(() => {
     console.log("Connected to DB");
@@ -22,7 +23,7 @@ app.post(
   "/signin",
   celebrate({
     body: Joi.object().keys({
-      email: Joi.string().email().required(),
+      email: Joi.string().email({ tlds: { allow: false } }).required(),
       password: Joi.string().min(2).max(30).required(),
     }),
   }),
