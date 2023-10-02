@@ -1,66 +1,74 @@
 const Card = require("../models/cards.js");
 
-module.exports.findAllCards = (req, res) => {
+module.exports.findAllCards = (req, res, next) => {
   Card.find({})
     .then((cards) => res.send(cards))
-    .catch((err) =>
-      res.status(500).send({ message: 'На сервере произошла ошибка' })
-    );
+    .catch(next);
 };
 
-module.exports.findCardById = (req, res) => {
+module.exports.findCardById = (req, res, next) => {
   Card.findById(req.params.cardId)
     .then((card) => {
       if (card) {
         return res.send({ data: card });
       }
-      res
-        .status(404)
-        .send({ message: `Карточки с таким идентификатором не существует` });
+      const err = new Error("Карточка с таким ID не найдена");
+      err.statusCode = 404;
+      next(err);
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        res.status(400).send({ message: `Неверный идентификатор карточки` });
-        return;
+        const err = new Error("Неверный ID карточки");
+        err.statusCode = 400;
+        return next(err);
       }
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
+      next(err);
     });
 };
 
-module.exports.createCard = (req, res) => {
+module.exports.createCard = (req, res, next) => {
   const { name, link } = req.body;
   Card.create({ name, link, owner: req.user })
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return res
-          .status(400)
-          .send({ message: `Переданы некорректные данные` });
+        const err = new Error("Переданы некорректные данные");
+        err.statusCode = 400;
+        return next(err);
       }
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
+      next(err);
     });
 };
 
-module.exports.deleteCardById = (req, res) => {
-  Card.findByIdAndRemove(req.params.cardId)
+module.exports.deleteCardById = (req, res, next) => {
+  Card.findById(req.params.cardId)
     .then((card) => {
-      if (card) {
-      return Card.find({}).then((cards) => res.send(cards));
-    }
-    res.status(404).send({
-      message: `Карточки с таким идентификатором не существует`,
-    });
+      if (!card) {
+        const err = new Error("Карточка с таким ID не найдена");
+        err.statusCode = 404;
+        return next(err);
+      }
+      if (card.owner && !card.owner.equals(req.user._id)) {
+        const err = new Error("Это не ваша карточка");
+        err.statusCode = 409;
+        return next(err);
+      }
+
+      Card.findByIdAndRemove(req.params.cardId).then(() =>
+        Card.find({}).then((cards) => res.send(cards))
+      );
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        res.status(400).send({ message: `Неверный идентификатор карточки` });
-        return;
+        const err = new Error("Неверный ID карточки");
+        err.statusCode = 400;
+        return next(err);
       }
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
+      next(err);
     });
 };
 
-module.exports.setLike = (req, res) => {
+module.exports.setLike = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $addToSet: { likes: req.user._id } },
@@ -70,18 +78,21 @@ module.exports.setLike = (req, res) => {
       if (card) {
         return res.send({ data: card });
       }
-      res.status(404).send({ message: `Неверный идентификатор карточки` });
+      const err = new Error("Карточка с таким ID не найдена");
+      err.statusCode = 404;
+      next(err);
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        res.status(400).send({ message: `Неверный идентификатор карточки` });
-        return;
+        const err = new Error("Неверный ID карточки");
+        err.statusCode = 400;
+        return next(err);
       }
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
+      next(err);
     });
 };
 
-module.exports.deleteLike = (req, res) => {
+module.exports.deleteLike = (req, res, next) => {
   Card.findByIdAndUpdate(
     req.params.cardId,
     { $pull: { likes: req.user._id } },
@@ -91,13 +102,16 @@ module.exports.deleteLike = (req, res) => {
       if (card) {
         return res.send({ data: card });
       }
-      res.status(404).send({ message: `Неверный идентификатор карточки` });
+      const err = new Error("Карточка с таким ID не найдена");
+      err.statusCode = 404;
+      next(err);
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        res.status(400).send({ message: `Неверный идентификатор карточки` });
-        return;
+        const err = new Error("Неверный ID карточки");
+        err.statusCode = 400;
+        return next(err);
       }
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
+      next(err);
     });
 };

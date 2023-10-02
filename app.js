@@ -1,11 +1,11 @@
-const path = require("path");
 const mongoose = require("mongoose");
 const { PORT = 3000 } = process.env;
 const express = require("express");
 const app = express();
-
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+const { login, createUser } = require("./controllers/users");
+const authChecker = require("./middlewares/auth");
+const errorHandler = require("./middlewares/error");
+const { celebrate, Joi, errors } = require("celebrate");
 
 mongoose
   .connect("mongodb://localhost:27017/mestodb", {
@@ -15,22 +15,48 @@ mongoose
     console.log("Connected to DB");
   });
 
-app.use((req, res, next) => {
-  req.user = {
-    _id: "650595f444fa5c487723c327",
-  };
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
 
-  next();
-});
+app.post(
+  "/signin",
+  celebrate({
+    body: Joi.object().keys({
+      email: Joi.string().email().required(),
+      password: Joi.string().min(2).max(30).required(),
+    }),
+  }),
+  login
+);
+
+app.post(
+  "/signup",
+  celebrate({
+    body: Joi.object().keys({
+      name: Joi.string().alphanum().min(2).max(30),
+      about: Joi.string().alphanum().min(2).max(30),
+      avatar: Joi.string().uri(),
+      email: Joi.string().email().required(),
+      password: Joi.string().min(2).max(30).required(),
+    }),
+  }),
+  createUser
+);
+
+app.use(authChecker);
 
 app.use("/users", require("./routes/users.js"));
 app.use("/cards", require("./routes/cards.js"));
-app.use("*", (req, res) => {
-  res.status(404).send({
-    message: `Запрашиваемая страница не найдена`,
-  });
+
+app.use("*", (req, res, next) => {
+  const err = new Error("Страница не найдена");
+  err.statusCode = 404;
+  next(err);
 });
 
 app.listen(PORT, () => {
   console.log(`App listening on port ${PORT}`);
 });
+
+app.use(errors());
+app.use(errorHandler);

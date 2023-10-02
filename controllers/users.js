@@ -1,50 +1,72 @@
 const User = require("../models/users.js");
+const bcrypt = require("bcryptjs");
+const jwt = require("jsonwebtoken");
 
-module.exports.findAllUsers = (req, res) => {
+module.exports.findAllUsers = (req, res, next) => {
   User.find({})
     .then((users) => res.send(users))
-    .catch((err) =>
-      res.status(500).send({ message: 'На сервере произошла ошибка' })
-    );
+    .catch(next);
 };
 
-module.exports.findUserById = (req, res) => {
+module.exports.findUserById = (req, res, next) => {
   User.findById(req.params.userId)
     .then((user) => {
       if (user) {
         return res.send({ data: user });
       }
-      res.status(404).send({
-        message: `Пользователя с таким идентификатором не существует`,
-      });
+      const err = new Error("Пользователя с таким ID не существует");
+      err.statusCode = 404;
+      next(err);
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        res
-          .status(400)
-          .send({ message: `Неверный идентификатор пользователя` });
-        return;
+        const err = new Error("Неверный ID пользователя");
+        err.statusCode = 404;
+        return next(err);
       }
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
+      next(err);
     });
 };
 
-module.exports.createUser = (req, res) => {
-  const { name, about, avatar } = req.body;
+module.exports.me = (req, res, next) => {
+  console.log(req.user._id);
+  User.findById(req.user._id)
+    .then((user) => {
+      if (user) {
+        return res.send({ data: user });
+      }
+      const err = new Error("Пользователя с таким ID не существует");
+      err.statusCode = 404;
+      next(err);
+    })
+    .catch((err) => {
+      if (err.name === "CastError") {
+        const err = new Error("Неверный ID пользователя");
+        err.statusCode = 404;
+        return next(err);
+      }
+      next(err);
+    });
+};
 
-  User.create({ name, about, avatar })
+module.exports.createUser = (req, res, next) => {
+  const { name, about, avatar, email, password } = req.body;
+
+  bcrypt
+    .hash(password, 10)
+    .then((hash) => User.create({ name, about, avatar, email, password: hash }))
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return res
-          .status(400)
-          .send({ message: `Переданы некорректные данные` });
+        const err = new Error("Переданы некорректные данные");
+        err.statusCode = 400;
+        next(err);
       }
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
+      next(err);
     });
 };
 
-module.exports.updateUserInfo = (req, res) => {
+module.exports.updateUserInfo = (req, res, next) => {
   const { name, about } = req.body;
 
   User.findByIdAndUpdate(
@@ -55,15 +77,15 @@ module.exports.updateUserInfo = (req, res) => {
     .then((user) => res.send({ data: user }))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return res
-          .status(400)
-          .send({ message: `Переданы некорректные данные` });
+        const err = new Error("Переданы некорректные данные");
+        err.statusCode = 400;
+        next(err);
       }
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
+      next(err);
     });
 };
 
-module.exports.updateUserAvatar = (req, res) => {
+module.exports.updateUserAvatar = (req, res, next) => {
   const { avatar } = req.body;
 
   User.findByIdAndUpdate(req.user._id, { avatar: avatar }, { new: true })
@@ -71,14 +93,30 @@ module.exports.updateUserAvatar = (req, res) => {
       if (avatar) {
         return res.send({ data: user });
       }
-      res.status(400).send({ message: `Переданы некорректные данные` });
+      const err = new Error("Переданы некорректные данные");
+      err.statusCode = 400;
+      next(err);
     })
     .catch((err) => {
       if (err.name === "ValidationError") {
-        return res
-          .status(400)
-          .send({ message: `Переданы некорректные данные` });
+        const err = new Error("Переданы некорректные данные");
+        err.statusCode = 400;
+        next(err);
       }
-      res.status(500).send({ message: 'На сервере произошла ошибка' });
+      next(err);
     });
+};
+
+module.exports.login = (req, res, next) => {
+  const { email, password } = req.body;
+
+  return User.findUserByCredentials(email, password)
+    .then((user) => {
+      res.send({
+        token: jwt.sign({ _id: user._id }, "super-strong-secret", {
+          expiresIn: "7d",
+        }),
+      });
+    })
+    .catch(next);
 };
