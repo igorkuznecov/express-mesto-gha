@@ -1,45 +1,45 @@
-const users = require("express").Router();
-const { celebrate, Joi, errors } = require("celebrate");
+const users = require('express').Router();
+const { celebrate, Joi, errors } = require('celebrate');
 const {
   findAllUsers,
   findUserById,
   updateUserInfo,
   updateUserAvatar,
   me,
-} = require("../controllers/users.js");
+} = require('../controllers/users');
 
-users.get("/", findAllUsers);
-users.get("/me", me);
+users.get('/', findAllUsers);
+users.get('/me', me);
 
 users.get(
-  "/:userId",
+  '/:userId',
   celebrate({
     params: Joi.object().keys({
       userId: Joi.string().alphanum().length(24),
     }),
   }),
-  findUserById
+  findUserById,
 );
 
 users.patch(
-  "/me",
+  '/me',
   celebrate({
     body: Joi.object().keys({
       name: Joi.string().min(2).max(30),
       about: Joi.string().min(2).max(30),
     }),
   }),
-  updateUserInfo
+  updateUserInfo,
 );
 
 users.patch(
-  "/me/avatar",
+  '/me/avatar',
   celebrate({
     body: Joi.object().keys({
       avatar: Joi.string().uri().min(2).max(30),
     }),
   }),
-  updateUserAvatar
+  updateUserAvatar,
 );
 
 users.use(errors());

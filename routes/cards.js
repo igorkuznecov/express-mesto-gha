@@ -1,5 +1,5 @@
-const cards = require("express").Router();
-const { celebrate, Joi, errors } = require("celebrate");
+const cards = require('express').Router();
+const { celebrate, Joi, errors } = require('celebrate');
 
 const {
   findAllCards,
@@ -8,59 +8,59 @@ const {
   deleteCardById,
   setLike,
   deleteLike,
-} = require("../controllers/cards.js");
+} = require('../controllers/cards');
 
-cards.get("/", findAllCards);
+cards.get('/', findAllCards);
 
 cards.get(
-  "/:cardId",
+  '/:cardId',
   celebrate({
     params: Joi.object().keys({
       cardId: Joi.string().alphanum().length(24),
     }),
   }),
-  findCardById
+  findCardById,
 );
 
 cards.post(
-  "/",
+  '/',
   celebrate({
     body: Joi.object().keys({
       name: Joi.string().required().min(2).max(30),
       link: Joi.string().required().min(2),
     }),
   }),
-  createCard
+  createCard,
 );
 
 cards.delete(
-  "/:cardId",
+  '/:cardId',
   celebrate({
     params: Joi.object().keys({
       cardId: Joi.string().alphanum().length(24),
     }),
   }),
-  deleteCardById
+  deleteCardById,
 );
 
 cards.put(
-  "/:cardId/likes",
+  '/:cardId/likes',
   celebrate({
     params: Joi.object().keys({
       cardId: Joi.string().alphanum().length(24),
     }),
   }),
-  setLike
+  setLike,
 );
 
 cards.delete(
-  "/:cardId/likes",
+  '/:cardId/likes',
   celebrate({
     params: Joi.object().keys({
       cardId: Joi.string().alphanum().length(24),
     }),
   }),
-  deleteLike
+  deleteLike,
 );
 
 cards.use(errors());

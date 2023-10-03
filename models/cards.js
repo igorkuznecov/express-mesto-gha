@@ -1,4 +1,4 @@
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 
 const cardModel = new mongoose.Schema({
   name: {
@@ -13,7 +13,7 @@ const cardModel = new mongoose.Schema({
   },
   owner: {
     type: mongoose.Schema.Types.ObjectId,
-    ref: "user",
+    ref: 'user',
     required: true,
   },
   likes: {
@@ -27,8 +27,8 @@ const cardModel = new mongoose.Schema({
 });
 
 cardModel.path('link').validate((link) => {
-  urlRegex = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?/;
+  const urlRegex = /(ftp|http|https):\/\/(\w+:{0,1}\w*@)?(\S+)(:[0-9]+)?(\/|\/([\w#!:.?+=&%@!\-/]))?/;
   return urlRegex.test(link);
 }, 'Некорректная ссылка');
 
-module.exports = mongoose.model("card", cardModel);
+module.exports = mongoose.model('card', cardModel);

@@ -1,4 +1,7 @@
-const Card = require("../models/cards.js");
+const Card = require("../models/cards");
+const NotFoundError = require("../errors/not-found-err");
+const ForbiddenError = require("../errors/forbidden-err");
+const BadRequestError = require("../errors/bad-request-err");
 
 module.exports.findAllCards = (req, res, next) => {
   Card.find({})
@@ -12,17 +15,14 @@ module.exports.findCardById = (req, res, next) => {
       if (card) {
         return res.send({ data: card });
       }
-      const err = new Error("Карточка с таким ID не найдена");
-      err.statusCode = 404;
-      next(err);
+      throw new NotFoundError("Карточка с таким ID не найдена");
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        const err = new Error("Неверный ID карточки");
-        err.statusCode = 400;
+        const err = new BadRequestError("Неверный ID карточки");
         return next(err);
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -32,11 +32,10 @@ module.exports.createCard = (req, res, next) => {
     .then((card) => res.send({ data: card }))
     .catch((err) => {
       if (err.name === "ValidationError") {
-        const err = new Error("Переданы некорректные данные");
-        err.statusCode = 400;
+        const err = new BadRequestError("Переданы некорректные данные");
         return next(err);
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -44,27 +43,22 @@ module.exports.deleteCardById = (req, res, next) => {
   Card.findById(req.params.cardId)
     .then((card) => {
       if (!card) {
-        const err = new Error("Карточка с таким ID не найдена");
-        err.statusCode = 404;
-        return next(err);
+        throw new NotFoundError("Карточка с таким ID не найдена");
       }
       if (card.owner && !card.owner.equals(req.user._id)) {
-        const err = new Error("Это не ваша карточка");
-        err.statusCode = 403;
-        return next(err);
+        throw new ForbiddenError("Это не ваша карточка");
       }
 
-      Card.findByIdAndRemove(req.params.cardId).then(() =>
+      Card.deleteOne(card).then(() =>
         Card.find({}).then((cards) => res.send(cards))
       );
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        const err = new Error("Неверный ID карточки");
-        err.statusCode = 400;
+        const err = new BadRequestError("Неверный ID карточки");
         return next(err);
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -78,17 +72,14 @@ module.exports.setLike = (req, res, next) => {
       if (card) {
         return res.send({ data: card });
       }
-      const err = new Error("Карточка с таким ID не найдена");
-      err.statusCode = 404;
-      next(err);
+      throw new NotFoundError("Карточка с таким ID не найдена");
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        const err = new Error("Неверный ID карточки");
-        err.statusCode = 400;
+        const err = new BadRequestError("Неверный ID карточки");
         return next(err);
       }
-      next(err);
+      return next(err);
     });
 };
 
@@ -102,16 +93,13 @@ module.exports.deleteLike = (req, res, next) => {
       if (card) {
         return res.send({ data: card });
       }
-      const err = new Error("Карточка с таким ID не найдена");
-      err.statusCode = 404;
-      next(err);
+      throw new NotFoundError("Карточка с таким ID не найдена");
     })
     .catch((err) => {
       if (err.name === "CastError") {
-        const err = new Error("Неверный ID карточки");
-        err.statusCode = 400;
+        const err = new BadRequestError("Неверный ID карточки");
         return next(err);
       }
-      next(err);
+      return next(err);
     });
 };
