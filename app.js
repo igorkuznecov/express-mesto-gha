@@ -1,5 +1,4 @@
 const mongoose = require('mongoose');
-const NotFoundError = require("./errors/not-found-err");
 
 const { PORT = 3000 } = process.env;
 const express = require('express');
@@ -9,6 +8,7 @@ const { celebrate, Joi, errors } = require('celebrate');
 const { login, createUser } = require('./controllers/users');
 const authChecker = require('./middlewares/auth');
 const errorHandler = require('./middlewares/error');
+const NotFoundError = require('./errors/not-found-err');
 
 mongoose
   .connect('mongodb://127.0.0.1:27017/mestodb', {
@@ -49,12 +49,11 @@ app.post(
 
 app.use(authChecker);
 
-app.use('/users', require('./routes/users.js'));
-app.use('/cards', require('./routes/cards.js'));
+app.use('/users', require('./routes/users'));
+app.use('/cards', require('./routes/cards'));
 
 app.use('*', (req, res, next) => {
-  const err = new NotFoundError('Страница не найдена');
-  next(err);
+  next(new NotFoundError('Страница не найдена'));
 });
 
 app.use(errors());
